@@ -1,0 +1,6 @@
+activemq:
+  broker-url: tcp://localhost:61616
+
+queue:
+  webclient-server: webclient-server.q
+  server-webclient: server-webclient.q

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Web client page</title>
+    <style>
+        .main_input {
+            margin: 0 auto;
+            width: 350px;
+            padding: 1em;
+            border: 1px solid #CCC;
+            border-radius: 1em;
+        }
+
+        label {
+            display: inline-block;
+            width: 70px;
+            text-align: left;
+        }
+
+        input, select {
+            font: 1em sans-serif;
+            width: 200px;
+            box-sizing: border-box;
+            border: 1px solid #999;
+            border-radius: 0.5em;
+            padding: 1px 10px;
+        }
+
+        button {
+            border: 0.5px solid #999;
+            border-radius: 0.5em;
+            padding: 5px 10px;
+            margin-top: 1.5em;
+        }
+
+        .head_label {
+            font: 1.2em sans-serif;
+            text-align: center;
+        }
+    </style>
+    <script>
+        function sleep(ms) {
+            ms += new Date().getTime();
+            while (new Date() < ms){}
+        }
+        function waitForResponse(uniqId, refresh_rate) {
+            var url = "http://localhost:8080/web-client/api/users?uniqId=" + uniqId;
+            var xhr = new XMLHttpRequest();
+
+            xhr.open("GET", url, false);
+            xhr.onload = function () {
+                if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+                    var server_resp = xhr.responseText;
+
+                    if (server_resp === "-") {
+                        sleep(refresh_rate);
+                        waitForResponse(uniqId, refresh_rate);
+                    }
+                    else
+                        document.write(server_resp);
+                }
+            };
+            xhr.send();
+        }
+        function postData() {
+            /* Get data from froms the forms */
+            var name = document.getElementById('name').value;
+            var surname = document.getElementById('surname').value;
+            var action = document.getElementById('action').value;
+            var data = JSON.stringify({"action": action,
+                "user": {"name": name, "surname": surname}}); // make json from data
+
+            /* Prepare request */
+            var url = "http://localhost:8080/web-client/api/users";
+            var xhr = new XMLHttpRequest();
+
+            xhr.open("POST", url, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onload = function () { // handle server response
+                if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+                    alert("Server is working. Please wait for the answer!");
+
+                    var REFRESH_RATE = 1000;
+                    var uniqId = xhr.responseText;
+
+                    waitForResponse(uniqId, REFRESH_RATE);
+                }
+            };
+            xhr.send(data); // make post request
+        }
+    </script>
+</head>
+<body>
+<div class="head_label">
+    <p>Please, input user data and select action:</p>
+</div>
+<div class="main_input">
+    <form>
+        <div>
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="user_name">
+        </div>
+         
+        <div>
+            <label for="surname">Surname:</label>
+            <input type="text" id="surname" name="user_surname"> 
+        </div> 
+
+        <div class="drop_down">
+            <label for="action">Action:</label>
+            <select id="action">
+                <option value="GET">Search for user</option>
+                <option value="ADD">Add user</option>
+                <option value="DELETE">Delete user</option>
+            </select>
+        </div>
+    </form>
+    <div class="button">
+        <button onclick="postData()">Make request</button>
+    </div>
+</div>
+</body>
+</html>
